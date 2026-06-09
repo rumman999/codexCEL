@@ -1,5 +1,16 @@
 import { Router } from 'express';
 import * as XLSX from 'xlsx';
+import rateLimit from 'express-rate-limit';
+import OpenAI from 'openai';
+
+// Rate limiter for /api/chat
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 requests per `window`
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * Create the API router with all endpoints.
@@ -10,6 +21,11 @@ import * as XLSX from 'xlsx';
  */
 export function createRouter({ db, upload }) {
   const router = Router();
+
+  // Initialize OpenAI SDK here so dotenv.config() has already populated process.env
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-dev',
+  });
 
   // ─── Health Check ─────────────────────────────────────
   router.get('/health', (_req, res) => {
@@ -49,12 +65,12 @@ export function createRouter({ db, upload }) {
 
       // Store metadata and data in SQLite Spreadsheets table
       const stmt = db.prepare(`
-        INSERT INTO Spreadsheets (filename, uploadDate, data)
-        VALUES (?, ?, ?)
+        INSERT INTO Spreadsheets (sessionId, filename, uploadDate, data)
+        VALUES (?, ?, ?, ?)
       `);
 
       const uploadDate = new Date().toISOString();
-      const result = stmt.run(originalname, uploadDate, stringifiedData);
+      const result = stmt.run(req.sessionID, originalname, uploadDate, stringifiedData);
 
       console.log(`[Upload] File stored with ID: ${result.lastInsertRowid}`);
 
@@ -71,13 +87,14 @@ export function createRouter({ db, upload }) {
   });
 
   // ─── List Files ───────────────────────────────────────
-  router.get('/files', (_req, res) => {
+  router.get('/files', (req, res) => {
     try {
       const rows = db.prepare(`
         SELECT id, filename, uploadDate
         FROM Spreadsheets
+        WHERE sessionId = ?
         ORDER BY id DESC
-      `).all();
+      `).all(req.sessionID);
 
       // Map to format expected by frontend sidebar
       const files = rows.map(r => ({
@@ -100,10 +117,10 @@ export function createRouter({ db, upload }) {
   router.get('/data/:id', (req, res) => {
     try {
       console.log(`[Data] Fetching data for file ID: ${req.params.id}`);
-      const file = db.prepare('SELECT data FROM Spreadsheets WHERE id = ?').get(req.params.id);
+      const file = db.prepare('SELECT data FROM Spreadsheets WHERE id = ? AND sessionId = ?').get(req.params.id, req.sessionID);
 
       if (!file) {
-        return res.status(404).json({ error: 'File not found' });
+        return res.status(404).json({ error: 'File not found or access denied' });
       }
 
       // Parse JSON array string back into object
@@ -118,10 +135,10 @@ export function createRouter({ db, upload }) {
   // ─── Delete File ──────────────────────────────────────
   router.delete('/files/:id', (req, res) => {
     try {
-      const file = db.prepare('SELECT id FROM Spreadsheets WHERE id = ?').get(req.params.id);
+      const file = db.prepare('SELECT id FROM Spreadsheets WHERE id = ? AND sessionId = ?').get(req.params.id, req.sessionID);
 
       if (!file) {
-        return res.status(404).json({ error: 'File not found' });
+        return res.status(404).json({ error: 'File not found or access denied' });
       }
 
       db.prepare('DELETE FROM Spreadsheets WHERE id = ?').run(req.params.id);
@@ -131,6 +148,64 @@ export function createRouter({ db, upload }) {
     } catch (error) {
       console.error('[File] Delete error:', error.message);
       res.status(500).json({ error: 'Failed to delete file' });
+    }
+  });
+
+  // ─── OpenAI Chat Integration ───────────────────────────
+  router.post('/chat', chatLimiter, async (req, res) => {
+    try {
+      const { fileId, message } = req.body;
+      
+      if (!fileId || !message) {
+        return res.status(400).json({ error: 'fileId and message are required' });
+      }
+
+      console.log(`[Chat] Processing message for file ID: ${fileId} from session: ${req.sessionID}`);
+      
+      // Fetch data and strictly verify sessionId
+      const file = db.prepare('SELECT data FROM Spreadsheets WHERE id = ? AND sessionId = ?').get(fileId, req.sessionID);
+      
+      if (!file) {
+        return res.status(404).json({ error: 'File not found or access denied' });
+      }
+
+      // Parse and truncate data heavily to save tokens
+      let parsedData = JSON.parse(file.data);
+      let dataSnippet = parsedData;
+      let truncatedNote = '';
+      
+      if (parsedData.length > 50) {
+        dataSnippet = parsedData.slice(0, 50);
+        truncatedNote = '\\n\\n[NOTE: Data truncated to first 50 rows]';
+      }
+
+      const stringifiedSnippet = JSON.stringify(dataSnippet) + truncatedNote;
+
+      const systemPrompt = `You are codexCEL's Business Intelligence Assistant. Here is the user's data (first 50 rows max): ${stringifiedSnippet}. Answer their question concisely. If they ask for a chart, graph, or visual comparison, you MUST include a JSON code block in your markdown response formatted EXACTLY like this for Recharts:
+\`\`\`json
+{
+  "chartType": "bar", // or "line", "pie"
+  "data": [{"name": "Jan", "value": 400}, {"name": "Feb", "value": 300}]
+}
+\`\`\``;
+
+      // Send to OpenAI using the new Responses API
+      const completion = await openai.responses.create({
+        model: 'gpt-5.5',
+        input: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        // max_tokens and temperature might still be supported, we will leave them or remove them if they cause issues.
+        // The docs didn't explicitly show them in the simple snippet, but they are standard.
+      });
+
+      const aiResponse = completion.output_text;
+      res.json({ response: aiResponse });
+
+    } catch (error) {
+      console.error('[Chat] OpenAI integration error:', error.message);
+      res.status(500).json({ error: 'Failed to process chat response' });
     }
   });
 

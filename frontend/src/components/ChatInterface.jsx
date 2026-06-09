@@ -47,13 +47,25 @@ export default function ChatInterface({ fileId, fileName }) {
 
     try {
       console.log('[ChatInterface] Awaiting AI response...');
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId, message: text }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to get response');
+      }
+
+      const data = await res.json();
 
       const aiMsg = {
         role: 'ai',
-        content: `I'd analyze that for you. Once the OpenAI integration is connected, I'll provide detailed insights about "${text}". Here's a chart placeholder showing what the response would look like.`,
+        content: data.response,
         timestamp: new Date().toISOString(),
-        hasChart: text.toLowerCase().includes('chart') || text.toLowerCase().includes('graph') || text.toLowerCase().includes('plot'),
+        hasChart: data.response.includes('chartType') || text.toLowerCase().includes('chart'),
       };
       setMessages((prev) => [...prev, aiMsg]);
       console.log('[ChatInterface] AI response received');

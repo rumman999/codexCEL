@@ -7,6 +7,8 @@ import { initDatabase } from './database.js';
 import { createUploadMiddleware } from './upload.js';
 import { createRouter } from './routes.js';
 
+import session from 'express-session';
+
 // ─── Config ─────────────────────────────────────────────
 dotenv.config();
 
@@ -34,6 +36,18 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(session({
+  secret: 'codexcel-secret-key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  }
+}));
 
 // ─── Request Logger (dev only) ──────────────────────────
 if (process.env.NODE_ENV !== 'production') {

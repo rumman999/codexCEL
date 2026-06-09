@@ -34,6 +34,7 @@ export function initDatabase(dbPath) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS Spreadsheets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sessionId TEXT NOT NULL,
       filename TEXT NOT NULL,
       uploadDate TEXT NOT NULL,
       data TEXT NOT NULL
