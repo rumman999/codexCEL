@@ -4,6 +4,13 @@ Friction-free Business Intelligence powered by OpenAI.
 
 codexCEL is a modern, decoupled web application that transforms raw `.xlsx` spreadsheet data into actionable insights. By leveraging the OpenAI API, users can upload their financial or business data and query it using natural language to instantly receive text summaries and dynamic, interactive charts.
 
+## Screenshots
+
+**Landing Page**  
+![Landing Page](./assets/landing-page.png)
+
+**Dashboard & AI Queries**  
+![Dashboard Analysis](./assets/dashboard-queries.png)
 ## Features
 
 - **Seamless Data Ingestion:** Upload `.xlsx` files securely into a memory-based ingestion pipeline.
