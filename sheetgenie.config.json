@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "sheetgenie",
+  "version": "1.0.0",
+  "description": "SheetGenie project configuration",
+
+  "architecture": {
+    "frontend": {
+      "framework": "react",
+      "bundler": "vite",
+      "styling": "tailwindcss-v4",
+      "componentLibrary": "shadcn/ui",
+      "chartLibrary": "recharts",
+      "devPort": 5173,
+      "proxyTarget": "http://localhost:3001"
+    },
+    "backend": {
+      "runtime": "node",
+      "framework": "express",
+      "database": "sqlite",
+      "dbFile": "backend/data/database.sqlite",
+      "fileParser": "xlsx",
+      "apiPrefix": "/api",
+      "port": 3001
+    }
+  },
+
+  "theme": {
+    "background": "#FFFFFF",
+    "primary": "#1D6F42",
+    "primaryHover": "#1A6540",
+    "primaryLight": "#E8F5EE",
+    "textPrimary": "#171717",
+    "textSecondary": "#737373",
+    "border": "#E5E5E5",
+    "error": "#DC2626",
+    "warning": "#F59E0B",
+    "success": "#1D6F42",
+    "font": "Inter"
+  },
+
+  "debugging": {
+    "backendLogging": "console with prefixed tags: [DB], [Upload], [Health], [Files], [Error], [Server]",
+    "backendDevServer": "nodemon (auto-restart on file changes)",
+    "backendHealthEndpoint": "GET /api/health",
+    "frontendDevServer": "vite HMR with error overlay",
+    "frontendProxy": "/api → http://localhost:3001"
+  },
+
+  "scripts": {
+    "startAll": "Run 'npm run dev' in both /frontend and /backend",
+    "healthCheck": "curl http://localhost:3001/api/health"
+  }
+}

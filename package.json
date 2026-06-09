@@ -1,0 +1,15 @@
+{
+  "name": "sheetgenie",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SheetGenie — AI-Powered Excel Analyzer",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "install:all": "npm --prefix frontend install && npm --prefix backend install",
+    "health": "npm --prefix backend run health"
+  },
+  "keywords": ["sheetgenie", "excel", "ai"],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "sheetgenie-backend",
+  "version": "1.0.0",
+  "description": "SheetGenie backend — Express API for AI-powered Excel analysis",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --passWithNoTests",
+    "health": "curl -s http://localhost:3001/api/health | node -e \"process.stdin.on('data',d=>{const j=JSON.parse(d);console.log(j.status==='ok'?'✅ Server healthy':'❌ Server unhealthy');process.exit(j.status==='ok'?0:1)})\""
+  },
+  "keywords": ["sheetgenie", "excel", "ai", "analyzer"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^5.0.0",
+    "multer": "^1.4.5-lts.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

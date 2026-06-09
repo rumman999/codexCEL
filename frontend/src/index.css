@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* ===== SheetGenie Design Tokens ===== */
+:root {
+  /* Excel Green Palette */
+  --excel-green-50: #e8f5ee;
+  --excel-green-100: #c6e6d3;
+  --excel-green-200: #a0d4b6;
+  --excel-green-300: #78c298;
+  --excel-green-400: #58b481;
+  --excel-green-500: #1D6F42;
+  --excel-green-600: #1a6540;
+  --excel-green-700: #155736;
+  --excel-green-800: #10482c;
+  --excel-green-900: #0a3a22;
+
+  /* Neutral Palette */
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-400: #a3a3a3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #171717;
+
+  /* Semantic Colors */
+  --color-primary: var(--excel-green-500);
+  --color-primary-hover: var(--excel-green-600);
+  --color-primary-light: var(--excel-green-50);
+  --color-background: #ffffff;
+  --color-surface: var(--neutral-50);
+  --color-border: var(--neutral-200);
+  --color-text-primary: var(--neutral-900);
+  --color-text-secondary: var(--neutral-500);
+  --color-error: #dc2626;
+  --color-warning: #f59e0b;
+  --color-success: var(--excel-green-500);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Spacing */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* ===== Global Reset & Base ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Utility Classes ===== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
