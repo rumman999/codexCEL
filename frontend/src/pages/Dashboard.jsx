@@ -46,7 +46,7 @@ export default function Dashboard() {
   const fetchFileData = async (fileId) => {
     setIsLoadingData(true);
     try {
-      const res = await fetch(`/api/data/${fileId}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/data/${fileId}`);
       if (!res.ok) {
         setTableData(null);
         return;
@@ -85,7 +85,7 @@ export default function Dashboard() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -158,7 +158,7 @@ export default function Dashboard() {
     setIsTyping(true);
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileId: activeFile.id, message: text }),
@@ -183,7 +183,7 @@ export default function Dashboard() {
   // Helper to parse AI markdown for Chart JSON
   const renderMessageContent = (content, role) => {
     if (role === 'user') return content;
-    
+
     try {
       const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
       const match = content.match(jsonRegex);
@@ -198,7 +198,7 @@ export default function Dashboard() {
       return (
         <div className="flex flex-col gap-3 w-full">
           {textContent && (
-            <div className="markdown-body">
+            <div className="prose prose-sm prose-slate max-w-none break-words">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{textContent}</ReactMarkdown>
             </div>
           )}
@@ -211,7 +211,7 @@ export default function Dashboard() {
       );
     } catch (e) {
       return (
-        <div className="markdown-body">
+        <div className="prose prose-sm prose-slate max-w-none break-words">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
         </div>
       );
@@ -232,22 +232,22 @@ export default function Dashboard() {
         className={`
           relative w-full max-w-lg cursor-pointer rounded-xl border-2 border-dashed
           transition-all duration-300 ease-out flex flex-col items-center justify-center py-16 px-6
-          ${isDragging ? 'border-emerald-400 bg-emerald-50/40 scale-[1.01] shadow-sm' : 
-            uploadState === 'error' ? 'border-red-200 bg-red-50/30' : 
-            uploadState === 'success' ? 'border-emerald-300 bg-emerald-50/30' : 
-            'border-slate-200 hover:border-emerald-300 hover:bg-slate-50/50'}
+          ${isDragging ? 'border-emerald-400 bg-emerald-50/40 scale-[1.01] shadow-sm' :
+            uploadState === 'error' ? 'border-red-200 bg-red-50/30' :
+              uploadState === 'success' ? 'border-emerald-300 bg-emerald-50/30' :
+                'border-slate-200 hover:border-emerald-300 hover:bg-slate-50/50'}
         `}
       >
         <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
         <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-all duration-300
-          ${isDragging ? 'bg-emerald-600 text-white scale-110' : 
-            uploadState === 'uploading' ? 'bg-emerald-50 text-emerald-600' : 
-            uploadState === 'error' ? 'bg-red-50 text-red-500' : 
-            uploadState === 'success' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}
+          ${isDragging ? 'bg-emerald-600 text-white scale-110' :
+            uploadState === 'uploading' ? 'bg-emerald-50 text-emerald-600' :
+              uploadState === 'error' ? 'bg-red-50 text-red-500' :
+                uploadState === 'success' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}
         `}>
-          {uploadState === 'uploading' ? <Loader2 size={24} className="animate-spin" /> : 
-           uploadState === 'error' ? <AlertCircle size={24} /> : 
-           uploadState === 'success' ? <CheckCircle2 size={24} /> : <UploadCloud size={24} />}
+          {uploadState === 'uploading' ? <Loader2 size={24} className="animate-spin" /> :
+            uploadState === 'error' ? <AlertCircle size={24} /> :
+              uploadState === 'success' ? <CheckCircle2 size={24} /> : <UploadCloud size={24} />}
         </div>
 
         {uploadState === 'idle' && (
@@ -373,40 +373,38 @@ export default function Dashboard() {
               return (
                 <div key={i} className={`flex gap-3 animate-fade-in ${isAI ? '' : 'flex-row-reverse'}`}>
                   {/* Avatar */}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${
-                    isAI ? 'bg-white border-slate-200 text-emerald-600' : 'bg-emerald-100 border-emerald-200 text-emerald-700'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${isAI ? 'bg-white border-slate-200 text-emerald-600' : 'bg-emerald-100 border-emerald-200 text-emerald-700'
+                    }`}>
                     {isAI ? <Bot size={16} /> : <User size={16} />}
                   </div>
-                  
+
                   {/* Bubble */}
                   <div className={`flex flex-col max-w-[85%] ${isAI ? 'items-start' : 'items-end'}`}>
-                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap shadow-sm ${
-                      isAI 
-                        ? 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm' 
-                        : 'bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-tr-sm'
-                    }`}>
+                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap shadow-sm ${isAI
+                      ? 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm'
+                      : 'bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-tr-sm'
+                      }`}>
                       {renderMessageContent(msg.content, msg.role)}
                     </div>
                   </div>
                 </div>
               );
             })}
-            
+
             {/* Typing Indicator */}
             {isTyping && (
-               <div className="flex gap-3 animate-fade-in">
-                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm border bg-white border-slate-200 text-emerald-600">
-                   <Bot size={16} />
-                 </div>
-                 <div className="px-4 py-4 rounded-2xl rounded-tl-sm bg-white border border-slate-200 shadow-sm">
-                   <div className="flex items-center gap-1.5">
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                   </div>
-                 </div>
-               </div>
+              <div className="flex gap-3 animate-fade-in">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm border bg-white border-slate-200 text-emerald-600">
+                  <Bot size={16} />
+                </div>
+                <div className="px-4 py-4 rounded-2xl rounded-tl-sm bg-white border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
             )}
             <div ref={chatEndRef} />
           </div>
@@ -426,13 +424,13 @@ export default function Dashboard() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
               placeholder={activeFile ? "Ask a question about your data..." : "Upload a spreadsheet first..."}
-              disabled={!activeFile || isTyping}
-              className="flex-1 bg-slate-50 border-slate-200 focus-visible:ring-emerald-500 h-11 rounded-xl shadow-sm"
+              disabled={isTyping}
+              className="flex-1 bg-slate-50 border-slate-200 focus-visible:ring-emerald-500 h-11 rounded-xl shadow-sm pl-6"
             />
             <Button
               size="icon"
               onClick={sendMessage}
-              disabled={!input.trim() || !activeFile || isTyping}
+              disabled={!input.trim() || isTyping}
               className="h-11 w-11 rounded-xl shrink-0 shadow-md bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white border-0 transition-all active:scale-95"
             >
               {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
