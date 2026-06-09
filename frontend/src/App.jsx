@@ -1,161 +1,164 @@
-import { useState, useCallback } from 'react'
-import './App.css'
+import { useState, useEffect, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
+import Sidebar from './components/Sidebar';
+import UploadZone from './components/UploadZone';
+import DataTable from './components/DataTable';
+import ChatInterface from './components/ChatInterface';
+import './App.css';
 
 function App() {
-  const [isDragActive, setIsDragActive] = useState(false)
-  const [uploadedFile, setUploadedFile] = useState(null)
-  const [status, setStatus] = useState(null)
+  const [files, setFiles] = useState([]);
+  const [activeFile, setActiveFile] = useState(null);
+  const [tableData, setTableData] = useState(null);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault()
-    setIsDragActive(true)
-  }, [])
+  // ─── Lifecycle ──────────────────────────────────────
+  useEffect(() => {
+    console.log('[App] SheetGenie dashboard mounted');
+    fetchFiles();
+    return () => console.log('[App] Dashboard unmounted');
+  }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setIsDragActive(false)
-  }, [])
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault()
-    setIsDragActive(false)
-
-    const file = e.dataTransfer.files[0]
-    if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv'))) {
-      setUploadedFile(file)
-      handleUpload(file)
-    } else {
-      setStatus({ type: 'error', message: 'Please upload a valid Excel or CSV file.' })
-    }
-  }, [])
-
-  const handleFileSelect = useCallback((e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setUploadedFile(file)
-      handleUpload(file)
-    }
-  }, [])
-
-  const handleUpload = async (file) => {
-    setStatus({ type: 'loading', message: `Uploading "${file.name}"...` })
-
-    const formData = new FormData()
-    formData.append('file', file)
-
+  // ─── Fetch file list from backend ───────────────────
+  const fetchFiles = async () => {
+    console.log('[App] Fetching files...');
+    setIsLoadingFiles(true);
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      console.log('Upload successful:', data)
-      setStatus({ type: 'success', message: `"${file.name}" uploaded successfully! (${data.rowCount} rows, ${data.columnCount} columns)` })
-    } catch (error) {
-      console.error('Upload error:', error)
-      setStatus({ type: 'error', message: `Upload failed: ${error.message}` })
+      const res = await fetch('/api/files');
+      if (!res.ok) throw new Error(`Failed to fetch files: ${res.statusText}`);
+      const data = await res.json();
+      console.log('[App] Files loaded:', data.files?.length || 0);
+      setFiles(data.files || []);
+    } catch (err) {
+      console.error('[App] Error fetching files:', err);
+      setError(err.message);
+    } finally {
+      setIsLoadingFiles(false);
     }
-  }
+  };
+
+  // ─── Fetch file data for table preview ──────────────
+  const fetchFileData = async (fileId) => {
+    console.log('[App] Fetching data for file:', fileId);
+    setIsLoadingData(true);
+    try {
+      const res = await fetch(`/api/files/${fileId}/data`);
+      if (!res.ok) {
+        console.warn('[App] Data endpoint not available, using placeholder');
+        setTableData(null);
+        return;
+      }
+      const data = await res.json();
+      console.log('[App] File data loaded:', data.rows?.length, 'rows');
+      setTableData(data.rows || null);
+    } catch (err) {
+      console.error('[App] Error fetching file data:', err);
+      setTableData(null);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // ─── Upload success handler ─────────────────────────
+  const handleUploadSuccess = useCallback((uploadResult) => {
+    console.log('[App] Upload success:', uploadResult);
+    setActiveFile({
+      id: uploadResult.id,
+      original_name: uploadResult.originalName,
+      row_count: uploadResult.rowCount,
+      column_count: uploadResult.columnCount,
+    });
+    fetchFiles();
+    fetchFileData(uploadResult.id);
+  }, []);
+
+  // ─── Select file from sidebar ───────────────────────
+  const handleFileSelect = useCallback((file) => {
+    console.log('[App] File selected:', file.original_name);
+    setActiveFile(file);
+    fetchFileData(file.id);
+  }, []);
+
+  // ─── Clear history ─────────────────────────────────
+  const handleClearHistory = useCallback(async () => {
+    console.log('[App] Clearing all history...');
+    try {
+      for (const file of files) {
+        await fetch(`/api/files/${file.id}`, { method: 'DELETE' });
+      }
+      setFiles([]);
+      setActiveFile(null);
+      setTableData(null);
+      console.log('[App] History cleared');
+    } catch (err) {
+      console.error('[App] Error clearing history:', err);
+    }
+  }, [files]);
+
+  // ─── New session ───────────────────────────────────
+  const handleNewSession = useCallback(() => {
+    console.log('[App] Starting new session');
+    setActiveFile(null);
+    setTableData(null);
+  }, []);
+
+  // ─── Close table preview ──────────────────────────
+  const handleClosePreview = useCallback(() => {
+    console.log('[App] Closing table preview');
+    setActiveFile(null);
+    setTableData(null);
+  }, []);
+
+  const hasData = !!(activeFile && tableData);
 
   return (
-    <div className="app">
-      {/* Header */}
-      <header className="header">
-        <div className="container header__inner">
-          <div className="header__brand">
-            <div className="header__logo">S</div>
-            <h1 className="header__title">
-              Sheet<span>Genie</span>
-            </h1>
-          </div>
-          <div className="header__status">
-            <div className="header__status-dot"></div>
-            System Online
-          </div>
-        </div>
-      </header>
+    <div className="app-layout">
+      <Sidebar
+        files={files}
+        onFileSelect={handleFileSelect}
+        onClearHistory={handleClearHistory}
+        onNewSession={handleNewSession}
+        activeFileId={activeFile?.id}
+      />
 
-      {/* Main Content */}
-      <main className="main">
-        <div className="container">
-          {/* Hero */}
-          <section className="hero" id="hero-section">
-            <div className="hero__badge">
-              ✦ AI-Powered Excel Analysis
+      <div className="workspace">
+        {/* Top Panel — Upload / Data Preview */}
+        <div className="workspace__top">
+          {isLoadingData ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center gap-3 animate-fade-in">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <Loader2 size={20} className="text-emerald-600 animate-spin" />
+                </div>
+                <p className="text-sm text-slate-400">Loading spreadsheet data...</p>
+              </div>
             </div>
-            <h2 className="hero__title">
-              Analyze spreadsheets with <span>AI intelligence</span>
-            </h2>
-            <p className="hero__subtitle">
-              Upload your Excel files and let SheetGenie extract insights,
-              generate charts, and answer questions about your data.
-            </p>
-          </section>
-
-          {/* Upload Card */}
-          <div
-            id="upload-dropzone"
-            className={`upload-card ${isDragActive ? 'upload-card--active' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('file-input').click()}
-          >
-            <input
-              type="file"
-              id="file-input"
-              accept=".xlsx,.xls,.csv"
-              style={{ display: 'none' }}
-              onChange={handleFileSelect}
+          ) : hasData ? (
+            <DataTable
+              data={tableData}
+              fileName={activeFile.original_name}
+              onClose={handleClosePreview}
             />
-            <div className="upload-card__icon">📊</div>
-            <p className="upload-card__title">
-              Drag & drop your file here, or <span>browse</span>
-            </p>
-            <p className="upload-card__subtitle">
-              Supports .xlsx, .xls, and .csv files
-            </p>
-          </div>
-
-          {/* Status Message */}
-          {status && (
-            <div
-              id="upload-status"
-              className="mt-6 text-center text-sm"
-              style={{
-                marginTop: '1.5rem',
-                textAlign: 'center',
-                color:
-                  status.type === 'error'
-                    ? 'var(--color-error)'
-                    : status.type === 'success'
-                    ? 'var(--color-success)'
-                    : 'var(--color-text-secondary)',
-              }}
-            >
-              {status.type === 'loading' && '⏳ '}
-              {status.type === 'success' && '✅ '}
-              {status.type === 'error' && '❌ '}
-              {status.message}
-            </div>
+          ) : (
+            <UploadZone
+              onUploadSuccess={handleUploadSuccess}
+              hasData={false}
+            />
           )}
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <p>
-            Built with <span>SheetGenie</span> — AI-powered spreadsheet analysis
-          </p>
+        {/* Bottom Panel — AI Chat */}
+        <div className="workspace__bottom">
+          <ChatInterface
+            fileId={activeFile?.id}
+            fileName={activeFile?.original_name}
+          />
         </div>
-      </footer>
+      </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

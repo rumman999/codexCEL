@@ -10,15 +10,21 @@
     "test": "node --experimental-vm-modules node_modules/.bin/jest --passWithNoTests",
     "health": "curl -s http://localhost:3001/api/health | node -e \"process.stdin.on('data',d=>{const j=JSON.parse(d);console.log(j.status==='ok'?'✅ Server healthy':'❌ Server unhealthy');process.exit(j.status==='ok'?0:1)})\""
   },
-  "keywords": ["sheetgenie", "excel", "ai", "analyzer"],
+  "keywords": [
+    "sheetgenie",
+    "excel",
+    "ai",
+    "analyzer"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^11.0.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.0",
-    "express": "^5.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
     "multer": "^1.4.5-lts.2",
+    "sqlite3": "^6.0.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
