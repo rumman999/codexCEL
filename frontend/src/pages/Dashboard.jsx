@@ -344,14 +344,14 @@ export default function Dashboard() {
   // MAIN RENDER
   // ==========================================
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-50 p-4 flex gap-4">
+    <div className="h-[100dvh] w-screen overflow-hidden bg-slate-50 p-2 md:p-4 flex flex-col md:flex-row gap-2 md:gap-4">
       {/* Left Column (Data Workspace - 60%) */}
-      <Card className="w-[60%] flex flex-col h-full overflow-hidden border-slate-200 shadow-sm bg-white rounded-xl">
+      <Card className="w-full md:w-[60%] h-1/2 md:h-full flex flex-col overflow-hidden border-slate-200 shadow-sm bg-white rounded-xl">
         {!activeFile ? renderUploadZone() : renderDataTable()}
       </Card>
 
       {/* Right Column (AI Chat - 40%) */}
-      <Card className="w-[40%] flex flex-col h-full overflow-hidden border-slate-200 shadow-sm bg-white rounded-xl">
+      <Card className="w-full md:w-[40%] h-1/2 md:h-full flex flex-col overflow-hidden border-slate-200 shadow-sm bg-white rounded-xl">
         {/* Chat Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0 bg-white">
           <div className="flex items-center gap-2.5">
