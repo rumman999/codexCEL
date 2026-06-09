@@ -16,7 +16,7 @@ function App() {
 
   // ─── Lifecycle ──────────────────────────────────────
   useEffect(() => {
-    console.log('[App] SheetGenie dashboard mounted');
+    console.log('[App] codexCEL dashboard mounted');
     fetchFiles();
     return () => console.log('[App] Dashboard unmounted');
   }, []);

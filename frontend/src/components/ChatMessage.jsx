@@ -56,15 +56,17 @@ export default function ChatMessage({ role, content, timestamp }) {
 
       {/* Content */}
       <div className={`flex flex-col max-w-[85%] ${isAI ? 'items-start' : 'items-end'}`}>
-        <div className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed break-words overflow-hidden ${
+        <div className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed break-words w-full overflow-x-auto ${
           isAI
-            ? 'bg-slate-50 text-slate-800 rounded-tl-md border border-slate-100 prose prose-sm prose-slate max-w-none'
+            ? 'bg-slate-50 text-slate-800 rounded-tl-md border border-slate-200 shadow-sm'
             : 'bg-emerald-600 text-white rounded-tr-md shadow-sm'
         }`}>
           {isAI ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {cleanContent}
-            </ReactMarkdown>
+            <div className="markdown-body">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {cleanContent}
+              </ReactMarkdown>
+            </div>
           ) : (
             cleanContent
           )}
@@ -72,8 +74,10 @@ export default function ChatMessage({ role, content, timestamp }) {
 
         {/* Dynamic Chart Rendering */}
         {chartData && (
-          <div className="w-full max-w-2xl mt-2">
-            <ChartRenderer chartType={chartData.chartType} data={chartData.data} />
+          <div className="w-full mt-3 flex justify-start">
+            <div className="w-full sm:max-w-md lg:max-w-xl">
+              <ChartRenderer chartType={chartData.chartType} data={chartData.data} />
+            </div>
           </div>
         )}
 

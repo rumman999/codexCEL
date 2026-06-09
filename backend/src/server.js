@@ -81,7 +81,7 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, () => {
   console.log('');
   console.log('  ╔══════════════════════════════════════════╗');
-  console.log('  ║          SheetGenie Backend API          ║');
+  console.log('  ║           codexCEL Backend API           ║');
   console.log('  ╠══════════════════════════════════════════╣');
   console.log(`  ║  Server:   http://localhost:${PORT}         ║`);
   console.log(`  ║  Health:   http://localhost:${PORT}/api/health ║`);

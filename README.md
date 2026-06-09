@@ -88,8 +88,20 @@ The application will be available at `http://localhost:5173`.
 5. **Querying:** When the user sends a chat message, the backend retrieves the session's data, intelligently truncates it (to conserve tokens), and injects it into a strict system prompt.
 6. **Response:** OpenAI processes the data and returns markdown text along with structured JSON chart parameters, which the frontend renders natively.
 
-## OpenAI Codex Integration 🧠
+## Hackathon Judging Criteria & Codex Integration 🏆
 
-Built for the **OpenAI Codex Community Challenge at UIU**, this project demonstrates applied agentic workflows. 
+This project was built for the **OpenAI Codex Community Challenge at UIU** and strictly aligns with the core judging criteria:
 
-It specifically highlights the power of the `gpt-4o` model to act as a focused Business Intelligence assistant. The project includes a dedicated `/codex-skills` directory utilizing `skills.md` files to document and enforce the structured output schemas required for the frontend's dynamic rendering.
+### 1. AI-Native Thinking
+**codexCEL** uses the OpenAI API as its core engine. Instead of writing complex, hard-coded data parsing algorithms, the application passes raw spreadsheet arrays directly into `gpt-4o`. This enables capabilities that would be impossible with traditional software, such as allowing non-technical users to query unstructured financial trends in plain English and instantly receiving dynamic, Recharts-compatible visual coordinates in return.
+
+### 2. Agent Design & Workflow Engineering
+This entire application was built using advanced agentic orchestration!
+- **Zero-Code Execution:** We used **Codex AI** to code this *entire project* from scratch without writing a single line of code manually. 
+- **System Orchestration:** By utilizing our `AGENTS.md` system prompt and the `codex-skills/skills.md` definitions, we safely bounded the AI's execution, enforcing strict technical choices (like using SQLite over heavy databases) and defining strict Recharts JSON output formats.
+
+### 3. Creativity & Originality
+Instead of a standard chatbot, codexCEL offers a seamless, split-screen **Business Intelligence Dashboard**. It creatively intercepts Markdown from the AI, strips out hidden JSON payload blocks (`chartType` and `data`), and natively renders beautiful interactive graphs right inside the chat interface.
+
+### 4. Practical Impact
+codexCEL solves a massive real-world problem: **data accessibility**. It transforms complex, dense `.xlsx` files into friction-free, actionable insights. By using the OpenAI API to do heavy BI analysis easily, it democratizes data analysis, helping everyday people, small businesses, and community organizers make data-driven decisions without needing to know SQL or advanced Excel formulas.

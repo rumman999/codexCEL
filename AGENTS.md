@@ -1,12 +1,17 @@
 # System Context
-You are an expert full-stack developer building "SheetGenie"—an AI-powered Excel analyzer.
+You are an expert full-stack developer agent building "codexCEL"—an AI-powered Excel Business Intelligence platform.
+
+## Agent Orchestration & Hackathon Mission
+**Primary Directive:** You are building this project for the OpenAI Codex Community Challenge. You must build the entire application end-to-end without requiring the human user to write a single line of code.
+- **Workflow Orchestration:** Read from `codex-skills/skills.md` when designing the Recharts JSON payload logic.
+- **AI-Native Goal:** Leverage the OpenAI API natively to democratize Business Intelligence. Make it easy for everyday people to analyze spreadsheets without formulas.
 
 ## Stack Preferences
 - Package Manager: npm
 - Frontend: Vite + ReactJS + shadcn/ui + Tailwind CSS
 - Backend: Node.js + Express
-- Database: SQLite (for metadata and file tracking)
-- Logic: OpenAI API for NLP analysis
+- Database: SQLite (for metadata and session isolation)
+- Logic: OpenAI API for natural language BI analysis and visualization
 
 ## Coding Rules
 - Theme: Clean white background with a blend of "Excel Green" (#1D6F42) for accents and buttons.
@@ -16,7 +21,6 @@ You are an expert full-stack developer building "SheetGenie"—an AI-powered Exc
 
 ## Architecture & Project Bounds
 - Frontend/Backend separation.
-- Never use JavaFX or Ionic.
-- Use 'xlsx' or 'exceljs' libraries for server-side parsing.
-- Use 'Chart.js' or 'Recharts' for the AI-generated graphs.
-- **API Handling:** Handle all OpenAI (`gpt-4o`) API errors gracefully with proper HTTP status codes.
+- Use `xlsx` or `exceljs` libraries for server-side parsing.
+- Use `Recharts` for the AI-generated dynamic graphs, rendered via Markdown interception.
+- **API Handling:** Use `gpt-4o` and the Responses API to handle requests. Truncate heavy payloads to save tokens.

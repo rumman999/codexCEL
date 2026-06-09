@@ -60,7 +60,7 @@ export default function Sidebar({ files = [], onFileSelect, onClearHistory, onNe
               <FileSpreadsheet size={15} className="text-white" strokeWidth={2.5} />
             </div>
             <span className="font-semibold text-[14px] tracking-tight text-slate-800">
-              Sheet<span className="text-emerald-600">Genie</span>
+              codex<span className="text-emerald-600">CEL</span>
             </span>
           </div>
         )}

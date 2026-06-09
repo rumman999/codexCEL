@@ -66,8 +66,8 @@ export default function ChartRenderer({ chartType, data }) {
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={100}
+                innerRadius="40%"
+                outerRadius="75%"
                 paddingAngle={5}
                 dataKey="value" // OpenAI prompt sets 'value' for pie charts usually
               >

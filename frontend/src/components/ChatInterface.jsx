@@ -3,7 +3,7 @@ import { Send, Bot, Sparkles, MessageSquare, Loader2, AlertTriangle } from 'luci
 import ChatMessage from './ChatMessage';
 
 const WELCOME_MESSAGES = [
-  { role: 'ai', content: 'Welcome to SheetGenie. Upload a spreadsheet and ask me anything about your data — I can generate charts, summarize trends, and surface insights.', timestamp: new Date().toISOString() },
+  { role: 'ai', content: 'Welcome to codexCEL. Upload a spreadsheet and ask me anything about your data — I can generate charts, summarize trends, and surface insights.', timestamp: new Date().toISOString() },
 ];
 
 export default function ChatInterface({ fileId, fileName }) {
