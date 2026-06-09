@@ -22,29 +22,21 @@ export function initDatabase(dbPath) {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
+  // Drop old tables if they exist (to ensure a clean state for the new schema)
+  try {
+    db.exec('DROP TABLE IF EXISTS analyses;');
+    db.exec('DROP TABLE IF EXISTS files;');
+  } catch (err) {
+    console.error('[DB] Error dropping old tables:', err.message);
+  }
+
   // Create tables
   db.exec(`
-    CREATE TABLE IF NOT EXISTS files (
+    CREATE TABLE IF NOT EXISTS Spreadsheets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      original_name TEXT NOT NULL,
-      stored_name TEXT NOT NULL,
-      file_path TEXT NOT NULL,
-      file_size INTEGER NOT NULL,
-      mime_type TEXT,
-      row_count INTEGER DEFAULT 0,
-      column_count INTEGER DEFAULT 0,
-      sheet_names TEXT,
-      uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      status TEXT DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'processing', 'analyzed', 'error'))
-    );
-
-    CREATE TABLE IF NOT EXISTS analyses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      file_id INTEGER NOT NULL,
-      analysis_type TEXT NOT NULL,
-      result TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+      filename TEXT NOT NULL,
+      uploadDate TEXT NOT NULL,
+      data TEXT NOT NULL
     );
   `);
 

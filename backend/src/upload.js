@@ -11,22 +11,7 @@ import { randomUUID } from 'crypto';
  * @returns {multer.Multer} - Configured multer instance.
  */
 export function createUploadMiddleware(uploadDir, maxSizeMB = 25) {
-  // Ensure upload directory exists
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log(`[Upload] Created upload directory: ${uploadDir}`);
-  }
-
-  const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      cb(null, uploadDir);
-    },
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const uniqueName = `${randomUUID()}${ext}`;
-      cb(null, uniqueName);
-    },
-  });
+  const storage = multer.memoryStorage();
 
   const fileFilter = (_req, file, cb) => {
     const allowedExtensions = ['.xlsx', '.xls', '.csv'];

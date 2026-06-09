@@ -44,7 +44,7 @@ function App() {
     console.log('[App] Fetching data for file:', fileId);
     setIsLoadingData(true);
     try {
-      const res = await fetch(`/api/files/${fileId}/data`);
+      const res = await fetch(`/api/data/${fileId}`);
       if (!res.ok) {
         console.warn('[App] Data endpoint not available, using placeholder');
         setTableData(null);

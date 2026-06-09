@@ -34,34 +34,27 @@ export function createRouter({ db, upload }) {
         return res.status(400).json({ error: 'No file provided' });
       }
 
-      const { originalname, filename, path: filePath, size, mimetype } = req.file;
+      const { originalname, buffer, size } = req.file;
       console.log(`[Upload] Processing file: ${originalname} (${(size / 1024).toFixed(1)} KB)`);
 
-      // Parse the Excel/CSV file
-      const workbook = XLSX.readFile(filePath);
+      // Parse the Excel/CSV file from buffer
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
       const sheetNames = workbook.SheetNames;
       const firstSheet = workbook.Sheets[sheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
       const rowCount = jsonData.length;
       const columnCount = jsonData[0] ? jsonData[0].length : 0;
+      const stringifiedData = JSON.stringify(jsonData);
 
-      // Store metadata in SQLite
+      // Store metadata and data in SQLite Spreadsheets table
       const stmt = db.prepare(`
-        INSERT INTO files (original_name, stored_name, file_path, file_size, mime_type, row_count, column_count, sheet_names)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO Spreadsheets (filename, uploadDate, data)
+        VALUES (?, ?, ?)
       `);
 
-      const result = stmt.run(
-        originalname,
-        filename,
-        filePath,
-        size,
-        mimetype,
-        rowCount,
-        columnCount,
-        JSON.stringify(sheetNames)
-      );
+      const uploadDate = new Date().toISOString();
+      const result = stmt.run(originalname, uploadDate, stringifiedData);
 
       console.log(`[Upload] File stored with ID: ${result.lastInsertRowid}`);
 
@@ -69,9 +62,7 @@ export function createRouter({ db, upload }) {
         id: result.lastInsertRowid,
         originalName: originalname,
         rowCount,
-        columnCount,
-        sheetNames,
-        uploadedAt: new Date().toISOString(),
+        columnCount
       });
     } catch (error) {
       console.error('[Upload] Error:', error.message);
@@ -82,11 +73,21 @@ export function createRouter({ db, upload }) {
   // ─── List Files ───────────────────────────────────────
   router.get('/files', (_req, res) => {
     try {
-      const files = db.prepare(`
-        SELECT id, original_name, file_size, row_count, column_count, sheet_names, uploaded_at, status
-        FROM files
-        ORDER BY uploaded_at DESC
+      const rows = db.prepare(`
+        SELECT id, filename, uploadDate
+        FROM Spreadsheets
+        ORDER BY id DESC
       `).all();
+
+      // Map to format expected by frontend sidebar
+      const files = rows.map(r => ({
+        id: r.id,
+        original_name: r.filename,
+        uploaded_at: r.uploadDate,
+        // Provide defaults for stats since they aren't stored in this schema
+        row_count: '?',
+        file_size: null
+      }));
 
       res.json({ files });
     } catch (error) {
@@ -95,33 +96,35 @@ export function createRouter({ db, upload }) {
     }
   });
 
-  // ─── Get Single File ─────────────────────────────────
-  router.get('/files/:id', (req, res) => {
+  // ─── Get Single File Data ─────────────────────────────────
+  router.get('/data/:id', (req, res) => {
     try {
-      const file = db.prepare('SELECT * FROM files WHERE id = ?').get(req.params.id);
+      console.log(`[Data] Fetching data for file ID: ${req.params.id}`);
+      const file = db.prepare('SELECT data FROM Spreadsheets WHERE id = ?').get(req.params.id);
 
       if (!file) {
         return res.status(404).json({ error: 'File not found' });
       }
 
-      res.json({ file });
+      // Parse JSON array string back into object
+      const parsedData = JSON.parse(file.data);
+      res.json({ rows: parsedData });
     } catch (error) {
-      console.error('[File] Error:', error.message);
-      res.status(500).json({ error: 'Failed to retrieve file' });
+      console.error('[Data] Error:', error.message);
+      res.status(500).json({ error: 'Failed to retrieve file data' });
     }
   });
 
   // ─── Delete File ──────────────────────────────────────
   router.delete('/files/:id', (req, res) => {
     try {
-      const file = db.prepare('SELECT * FROM files WHERE id = ?').get(req.params.id);
+      const file = db.prepare('SELECT id FROM Spreadsheets WHERE id = ?').get(req.params.id);
 
       if (!file) {
         return res.status(404).json({ error: 'File not found' });
       }
 
-      // Delete from DB (cascades to analyses)
-      db.prepare('DELETE FROM files WHERE id = ?').run(req.params.id);
+      db.prepare('DELETE FROM Spreadsheets WHERE id = ?').run(req.params.id);
       console.log(`[File] Deleted file ID: ${req.params.id}`);
 
       res.json({ message: 'File deleted successfully' });
