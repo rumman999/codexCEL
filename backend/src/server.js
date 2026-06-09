@@ -28,6 +28,9 @@ const upload = createUploadMiddleware(UPLOAD_DIR, MAX_FILE_SIZE_MB);
 const app = express();
 
 // ─── Middleware ──────────────────────────────────────────
+
+app.set('trust proxy', 1);
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? ['https://rumman.is-a.dev', 'https://rumman999.github.io']
@@ -44,8 +47,8 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
