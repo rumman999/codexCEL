@@ -30,7 +30,7 @@ const app = express();
 // ─── Middleware ──────────────────────────────────────────
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? false
+    ? ['https://rumman.is-a.dev', 'https://rumman999.github.io']
     : ['http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
 }));
