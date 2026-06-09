@@ -46,7 +46,9 @@ export default function Dashboard() {
   const fetchFileData = async (fileId) => {
     setIsLoadingData(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/data/${fileId}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/data/${fileId}`, {
+        credentials: 'include'
+      });
       if (!res.ok) {
         setTableData(null);
         return;
@@ -88,6 +90,7 @@ export default function Dashboard() {
       const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/upload`, {
         method: 'POST',
         body: formData,
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -162,6 +165,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileId: activeFile.id, message: text }),
+        credentials: 'include'
       });
 
       if (!res.ok) {
