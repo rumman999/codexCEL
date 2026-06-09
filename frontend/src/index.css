@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* ===== SheetGenie Tailwind v4 Theme ===== */
 @theme {

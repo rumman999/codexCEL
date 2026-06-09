@@ -1,13 +1,46 @@
-import { useEffect } from 'react';
-import { BarChart3, Bot, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import ChartRenderer from './ChartRenderer';
 
 /**
  * A single chat message bubble with distinct layouts for user and AI.
  */
-export default function ChatMessage({ role, content, timestamp, hasChart = false, chartSlot = null }) {
+export default function ChatMessage({ role, content, timestamp }) {
+  const [cleanContent, setCleanContent] = useState('');
+  const [chartData, setChartData] = useState(null);
+
   useEffect(() => {
-    console.log(`[ChatMessage] Rendered ${role} message:`, content?.substring(0, 60));
-  }, []);
+    if (role === 'user') {
+      setCleanContent(content);
+      return;
+    }
+
+    // Attempt to extract a JSON block intended for chart rendering
+    try {
+      const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
+      const match = content.match(jsonRegex);
+      
+      let parsedChart = null;
+      let textContent = content;
+
+      if (match && match[1]) {
+        parsedChart = JSON.parse(match[1]);
+        // Remove the JSON block from the text content so it doesn't show in the chat bubble
+        textContent = content.replace(match[0], '').trim();
+      }
+
+      setCleanContent(textContent);
+      
+      if (parsedChart && parsedChart.chartType && parsedChart.data) {
+        setChartData(parsedChart);
+      }
+    } catch (e) {
+      console.warn('[ChatMessage] Failed to parse JSON block from AI response:', e);
+      setCleanContent(content); // Fallback to raw text if parsing fails
+    }
+  }, [content, role]);
 
   const isAI = role === 'ai';
   const time = timestamp
@@ -22,36 +55,25 @@ export default function ChatMessage({ role, content, timestamp, hasChart = false
       </div>
 
       {/* Content */}
-      <div className={`flex flex-col max-w-[75%] ${isAI ? 'items-start' : 'items-end'}`}>
-        <div className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed ${
+      <div className={`flex flex-col max-w-[85%] ${isAI ? 'items-start' : 'items-end'}`}>
+        <div className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed break-words overflow-hidden ${
           isAI
-            ? 'bg-slate-50 text-slate-700 rounded-tl-md border border-slate-100'
+            ? 'bg-slate-50 text-slate-800 rounded-tl-md border border-slate-100 prose prose-sm prose-slate max-w-none'
             : 'bg-emerald-600 text-white rounded-tr-md shadow-sm'
         }`}>
-          {content}
+          {isAI ? (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {cleanContent}
+            </ReactMarkdown>
+          ) : (
+            cleanContent
+          )}
         </div>
 
-        {/* Chart Skeleton */}
-        {isAI && hasChart && (
-          <div className="mt-3 w-full max-w-md">
-            {chartSlot || (
-              <div className="rounded-xl border border-slate-100 bg-white p-4 animate-fade-in shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <BarChart3 size={13} className="text-emerald-500" />
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Chart Preview</span>
-                </div>
-                <div className="flex items-end gap-1.5 h-28">
-                  {[65, 85, 45, 70, 55, 90, 40, 75].map((h, i) => (
-                    <div key={i} className="flex-1 rounded-t skeleton-shimmer" style={{ height: `${h}%`, animationDelay: `${i * 0.1}s` }} />
-                  ))}
-                </div>
-                <div className="flex justify-between mt-2.5 px-0.5">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((_, i) => (
-                    <div key={i} className="w-5 h-1.5 rounded-sm skeleton-shimmer" style={{ animationDelay: `${i * 0.1}s` }} />
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Dynamic Chart Rendering */}
+        {chartData && (
+          <div className="w-full max-w-2xl mt-2">
+            <ChartRenderer chartType={chartData.chartType} data={chartData.data} />
           </div>
         )}
 
